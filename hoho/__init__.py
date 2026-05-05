@@ -1,5 +1,4 @@
 import sys
-import subprocess
 from hoho.server import start_server
 
 def set_trace():

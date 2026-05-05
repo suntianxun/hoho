@@ -4,18 +4,33 @@ import threading
 from hoho.serializer import serialize_state
 
 def _run_server(server_socket, local_vars):
-    conn, addr = server_socket.accept()
-    with conn:
-        state = serialize_state(local_vars)
-        conn.sendall(json.dumps({"type": "state", "vars": state}).encode("utf-8"))
-        
-        while True:
-            data = conn.recv(1024)
-            if not data:
-                break
-            msg = json.loads(data.decode("utf-8"))
-            if msg.get("type") == "command" and msg.get("cmd") in ("next", "n", "c"):
-                break
+    try:
+        conn, addr = server_socket.accept()
+        with conn:
+            state = serialize_state(local_vars)
+            conn.sendall((json.dumps({"type": "state", "vars": state}) + "\n").encode("utf-8"))
+            
+            buffer = ""
+            while True:
+                data = conn.recv(4096)
+                if not data:
+                    break
+                buffer += data.decode("utf-8")
+                
+                while "\n" in buffer:
+                    line, buffer = buffer.split("\n", 1)
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        msg = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+                    
+                    if msg.get("type") == "command" and msg.get("cmd") in ("next", "n", "c"):
+                        return
+    finally:
+        server_socket.close()
 
 def start_server(local_vars, test_mode=False):
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
