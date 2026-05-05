@@ -22,19 +22,31 @@ type CommandMessage struct {
 	Cmd  string `json:"cmd"`
 }
 
-func Connect(port string) (net.Conn, error) {
-	return net.Dial("tcp", "127.0.0.1:"+port)
+type Client struct {
+	Conn    net.Conn
+	Encoder *json.Encoder
+	Decoder *json.Decoder
 }
 
-func ReadState(conn net.Conn) (StateMessage, error) {
+func Connect(port string) (*Client, error) {
+	conn, err := net.Dial("tcp", net.JoinHostPort("127.0.0.1", port))
+	if err != nil {
+		return nil, err
+	}
+	return &Client{
+		Conn:    conn,
+		Encoder: json.NewEncoder(conn),
+		Decoder: json.NewDecoder(conn),
+	}, nil
+}
+
+func (c *Client) ReadState() (StateMessage, error) {
 	var msg StateMessage
-	decoder := json.NewDecoder(conn)
-	err := decoder.Decode(&msg)
+	err := c.Decoder.Decode(&msg)
 	return msg, err
 }
 
-func SendCommand(conn net.Conn, cmd string) error {
+func (c *Client) SendCommand(cmd string) error {
 	msg := CommandMessage{Type: "command", Cmd: cmd}
-	encoder := json.NewEncoder(conn)
-	return encoder.Encode(msg)
+	return c.Encoder.Encode(msg)
 }
