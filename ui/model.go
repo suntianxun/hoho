@@ -2,6 +2,12 @@
 package ui
 
 import (
+	"fmt"
+	"net"
+	"strings"
+
+	"hoho/client"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -14,13 +20,36 @@ type Model struct {
 	width  int
 	height int
 	Ready  bool
+	Conn   net.Conn
+	State  []client.VarState
 }
 
-func InitialModel() Model {
-	return Model{}
+func New(conn net.Conn) Model {
+	return Model{
+		Conn: conn,
+	}
+}
+
+type stateMsg client.StateMessage
+type errMsg error
+
+func fetchState(conn net.Conn) tea.Cmd {
+	return func() tea.Msg {
+		if conn == nil {
+			return errMsg(fmt.Errorf("no connection"))
+		}
+		msg, err := client.ReadState(conn)
+		if err != nil {
+			return errMsg(err)
+		}
+		return stateMsg(msg)
+	}
 }
 
 func (m Model) Init() tea.Cmd {
+	if m.Conn != nil {
+		return fetchState(m.Conn)
+	}
 	return nil
 }
 
@@ -34,6 +63,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 		m.Ready = true
+	case stateMsg:
+		m.State = msg.Vars
+		return m, fetchState(m.Conn)
+	case errMsg:
+		// Log or handle error if needed
 	}
 	return m, nil
 }
@@ -54,7 +88,16 @@ func (m Model) View() string {
 	vh := m.height - 4
 	if vh < 0 { vh = 0 }
 
-	varsPane := paneStyle.Width(vw).Height(vh).Render("Variables")
+	var varLines []string
+	varLines = append(varLines, "Variables")
+	varLines = append(varLines, "---------")
+	for _, v := range m.State {
+		// optionally skip private or format them
+		line := fmt.Sprintf("%s (%s): %s", v.Name, v.Type, v.Value)
+		varLines = append(varLines, line)
+	}
+
+	varsPane := paneStyle.Width(vw).Height(vh).Render(strings.Join(varLines, "\n"))
 	termPane := paneStyle.Width(tw).Height(vh).Render("Terminal")
 	
 	return lipgloss.JoinHorizontal(lipgloss.Top, varsPane, termPane)
