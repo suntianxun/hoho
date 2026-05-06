@@ -1,5 +1,9 @@
 # hoho
 
+<p>
+  <img src="assets/logo.svg" width="540" alt="hoho — A modern Python debugger TUI">
+</p>
+
 A modern Python debugger TUI that replaces ipdb.
 
 Built with Go, [Bubble Tea](https://github.com/charmbracelet/bubbletea), and [Lip Gloss](https://github.com/charmbracelet/lipgloss).
