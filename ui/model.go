@@ -64,6 +64,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.String() == "q" || msg.String() == "ctrl+c" {
 			return m, tea.Quit
 		}
+		if msg.String() == "n" || msg.String() == "next" || msg.String() == "c" {
+			if m.Client != nil {
+				m.Client.SendCommand(msg.String())
+			}
+			return m, tea.Quit
+		}
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
@@ -71,7 +77,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case stateMsg:
 		m.State = msg.Vars
 		m.Err = nil
-		return m, fetchState(m.Client)
+		return m, nil
 	case errMsg:
 		m.Err = error(msg)
 	}

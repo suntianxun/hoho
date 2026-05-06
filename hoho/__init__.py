@@ -12,10 +12,16 @@ def set_trace():
     # Path to the hoho package root
     pkg_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(pkg_dir)
-    go_cmd_dir = os.path.join(project_root, "cmd", "hoho-tui")
+    
+    bin_dir = os.path.join(project_root, ".bin")
+    os.makedirs(bin_dir, exist_ok=True)
+    tui_exe = os.path.join(bin_dir, "hoho-tui")
+    
+    if not os.path.exists(tui_exe):
+        subprocess.run(["go", "build", "-o", tui_exe, "cmd/hoho-tui/main.go"], cwd=project_root)
     
     try:
-        subprocess.run(["go", "run", "main.go", str(port)], cwd=go_cmd_dir)
+        subprocess.run([tui_exe, str(port)])
     except Exception as e:
         print(f"Failed to run TUI: {e}")
     

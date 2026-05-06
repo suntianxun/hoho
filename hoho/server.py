@@ -34,7 +34,7 @@ def _run_server(server_socket, local_vars):
 
 def start_server(local_vars, test_mode=False):
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind(("localhost", 0))
+    server_socket.bind(("127.0.0.1", 0))
     server_socket.listen(1)
     port = server_socket.getsockname()[1]
     
