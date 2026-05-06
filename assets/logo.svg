@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 120" width="540" height="120">
+  <rect width="540" height="120" fill="#7D56F4" rx="10" />
+  <text x="270" y="70" font-family="monospace" font-size="48" fill="#FAFAFA" text-anchor="middle" font-weight="bold">hoho</text>
+  <text x="270" y="100" font-family="monospace" font-size="16" fill="#DDBBFF" text-anchor="middle">A modern Python debugger TUI</text>
+</svg>
